@@ -131,42 +131,11 @@ func (p *WebhookProvider) ApplyChanges(ctx context.Context, changes *externaldns
 	return nil
 }
 
-func (p *WebhookProvider) AdjustEndpoints(ctx context.Context, endpoints externaldns.Endpoints) (externaldns.Endpoints, error) {
+func (p *WebhookProvider) AdjustEndpoints(_ context.Context, endpoints externaldns.Endpoints) (externaldns.Endpoints, error) {
 	for _, endpoint := range endpoints {
 		// defaults
 		if _, exist := endpoint.GetProviderSpecificProperty(identifierLabelWeight); !exist {
 			endpoint.WithProviderSpecific(identifierLabelWeight, "0")
-		}
-
-		if _, exist := endpoint.GetProviderSpecificProperty(identifierLabelPriority); !exist {
-			endpoint.WithProviderSpecific(identifierLabelPriority, "0")
-		}
-
-		// set missing record IDs
-		if _, exist := endpoint.GetProviderSpecificProperty(identifierLabelID); !exist {
-			endpoint.WithProviderSpecific(identifierLabelID, "")
-
-			recordZones, err := endpointsToLibdnsZoneRecords([]*externaldns.Endpoint{endpoint}, p.zones)
-			if err != nil {
-				return nil, err
-			}
-			// there should be only one item in the map
-			for zone, records := range recordZones {
-				// there will be only one records
-				for _, record := range records {
-					if cachedRecords, exist := p.cachedZonesRecords[zone]; exist {
-						for _, zoneRecord := range cachedRecords {
-							if record.Name == zoneRecord.Name && record.Type == zoneRecord.Type {
-								log.Ctx(ctx).Debug().
-									Any("record", record).
-									Any("record_zone", zoneRecord).
-									Msg("Set record ID for endpoint")
-								endpoint.SetProviderSpecificProperty(identifierLabelID, zoneRecord.ID)
-							}
-						}
-					}
-				}
-			}
 		}
 	}
 

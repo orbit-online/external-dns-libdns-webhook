@@ -15,7 +15,6 @@ import (
 const (
 	identifierLabelWeight   = "weight"
 	identifierLabelPriority = "priority"
-	identifierLabelID       = "record-id"
 )
 
 // relativeName returns the name part of a DNS name in a zone.
@@ -55,42 +54,65 @@ func splitDNSName(dnsName string, zones []string) (string, string) {
 }
 
 func toExternalDNSEndpoint(record libdns.Record, zone string) *externaldns.Endpoint {
-	endpoint := externaldns.NewEndpointWithTTL(absoluteName(record.Name, zone), record.Type, int64(record.TTL.Seconds()), record.Value)
-	endpoint.WithProviderSpecific(identifierLabelWeight, strconv.FormatUint(uint64(record.Weight), 10))
-	endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(record.Priority), 10))
-	endpoint.WithProviderSpecific(identifierLabelID, record.ID)
+	rr := record.RR()
+	endpoint := externaldns.NewEndpointWithTTL(absoluteName(rr.Name, zone), rr.Type, int64(rr.TTL.Seconds()), rr.Data)
+
+	switch rec := record.(type) {
+	case libdns.MX:
+		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Preference), 10))
+	case libdns.SRV:
+		endpoint.WithProviderSpecific(identifierLabelWeight, strconv.FormatUint(uint64(rec.Weight), 10))
+		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Priority), 10))
+	case libdns.ServiceBinding:
+		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Priority), 10))
+	}
 
 	return endpoint
 }
 
 func toLibdnsRecord(endpoint *externaldns.Endpoint, zone string) libdns.Record {
-	record := libdns.Record{
-		Type:  endpoint.RecordType,
-		Name:  relativeName(endpoint.DNSName, zone),
-		Value: endpoint.Targets[0],
-		TTL:   time.Duration(endpoint.RecordTTL) * time.Second,
-	}
+	record, err := libdns.RR{
+		Type: endpoint.RecordType,
+		Name: relativeName(endpoint.DNSName, zone),
+		Data: endpoint.Targets[0],
+		TTL:  time.Duration(endpoint.RecordTTL) * time.Second,
+	}.Parse()
+	if err != nil {
+		log.Err(err).Msg("Failed to parse record")
 
-	if prop, ok := endpoint.GetProviderSpecificProperty(identifierLabelID); ok {
-		record.ID = prop
+		return record
 	}
-
+	var weight uint16
 	if prop, ok := endpoint.GetProviderSpecificProperty(identifierLabelWeight); ok {
-		weight, err := strconv.ParseUint(prop, 10, 64)
+		w, err := strconv.ParseUint(prop, 10, 16)
 		if err != nil {
 			log.Err(err).Str("weigth", prop).Msg("Failed to parse weight")
 		} else {
-			record.Weight = uint(weight)
+			weight = uint16(w)
 		}
 	}
 
+	var prio uint16
 	if prop, ok := endpoint.GetProviderSpecificProperty(identifierLabelPriority); ok {
-		prio, err := strconv.ParseUint(prop, 10, 64)
+		p, err := strconv.ParseUint(prop, 10, 16)
 		if err != nil {
 			log.Err(err).Str("priority", prop).Msg("Failed to parse priority")
 		} else {
-			record.Priority = uint(prio)
+			prio = uint16(p)
 		}
+	}
+
+	switch rec := record.(type) {
+	case libdns.MX:
+		rec.Preference = uint16(prio)
+		return rec
+	case libdns.SRV:
+		rec.Priority = uint16(prio)
+		rec.Weight = uint16(weight)
+		return rec
+	case libdns.ServiceBinding:
+		rec.Priority = uint16(prio)
+		return rec
 	}
 
 	return record

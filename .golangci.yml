@@ -42,7 +42,6 @@ linters:
     - inamedparam
     - interfacebloat
     - intrange
-    - ireturn
     - loggercheck
     - makezero
     - mirror
@@ -86,7 +85,7 @@ linters:
     - wastedassign
     - whitespace
     - wrapcheck
-    - wsl
+    - wsl_v5
     - zerologlint
   disable:
     - depguard
@@ -123,7 +122,6 @@ formatters:
   enable:
     - gci
     - gofmt
-    - gofumpt
     - goimports
   exclusions:
     generated: lax

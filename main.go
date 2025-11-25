@@ -145,10 +145,12 @@ func main() {
 			if cmd.String(flagLogFormat) == "text" {
 				log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
 			}
+
 			level, err := zerolog.ParseLevel(cmd.String(flagLogLevel))
 			if err != nil {
 				return ctx, fmt.Errorf("failed to parse log level: %w", err)
 			}
+
 			log.Info().Msgf("Setting log level to %s", level.String())
 			zerolog.SetGlobalLevel(level)
 
@@ -166,6 +168,7 @@ func main() {
 			}
 
 			providerName := cmd.String(flagProviderName)
+
 			libdnsProvider, err := libdnsregistry.New(providerName, confs)
 			if err != nil {
 				return fmt.Errorf("failed to create provider %s: %w", providerName, err)
