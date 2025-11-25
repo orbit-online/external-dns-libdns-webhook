@@ -30,7 +30,7 @@ require (
 	// github.com/libdns/hexonet v0.1.0
 	// github.com/libdns/hosttech v1.1.1
 	github.com/libdns/infomaniak v0.2.0
-	github.com/libdns/inwx v0.3.0
+	github.com/libdns/inwx v0.3.1
 	// github.com/libdns/katapult v1.0.0
 	// github.com/libdns/leaseweb v0.4.0
 	github.com/libdns/loopia v1.0.0
@@ -88,7 +88,6 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/dns v1.1.68 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/netlify/open-api/v2 v2.44.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pbergman/provider v1.0.2 // indirect
