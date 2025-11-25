@@ -357,8 +357,6 @@ github.com/libdns/he v1.2.1 h1:cjTZlxM5wv2lBPmtxsQCqMgmXMqTnmR4eLqUVwEkqis=
 github.com/libdns/he v1.2.1/go.mod h1:SWTm80gn+7sUASGsQbRHayenoW4QIw/iGmsrkDzFghM=
 github.com/libdns/infomaniak v0.2.0 h1:TC3jP68Tnw4sAi87r1xNY4fPF5Cs5SPGbEkTWvXCmnc=
 github.com/libdns/infomaniak v0.2.0/go.mod h1:2RTkgFMLv45OPE8dwgFZKn4PKzECdVADdHdkIcbUZWE=
-github.com/libdns/inwx v0.3.0 h1:TFKFqKUDfrlmKpeZc0mxAM3o9GZ4sQ7cwq+KyuybGWk=
-github.com/libdns/inwx v0.3.0/go.mod h1:q+nLyMTVQGL8DRCLGB1IT6WIWr9GOu8billodJNQssY=
 github.com/libdns/libdns v1.0.0-beta.1/go.mod h1:4Bj9+5CQiNMVGf87wjX4CY3HQJypUHRuLvlsfsZqLWQ=
 github.com/libdns/libdns v1.1.0/go.mod h1:4Bj9+5CQiNMVGf87wjX4CY3HQJypUHRuLvlsfsZqLWQ=
 github.com/libdns/libdns v1.1.1 h1:wPrHrXILoSHKWJKGd0EiAVmiJbFShguILTg9leS/P/U=
@@ -423,8 +421,6 @@ github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh
 github.com/mitchellh/mapstructure v1.3.2/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/mapstructure v1.3.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/mapstructure v1.4.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
-github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
@@ -434,6 +430,8 @@ github.com/netlify/open-api/v2 v2.44.0/go.mod h1:g4zTkS20wcAzQCJuBfaIw4pUeTPpaKT
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
+github.com/orbit-online/libdns-inwx v0.0.0-20251125172142-508cf4cc951a h1:xUt3FjJe50oUUPIKHaKU3LlqiuuNJLj252SZHJpkgyc=
+github.com/orbit-online/libdns-inwx v0.0.0-20251125172142-508cf4cc951a/go.mod h1:kUBDmTXFGY8BqpHRJOWQ+GYfFnJOeejKeJHhnVliUb8=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pbergman/provider v1.0.2 h1:O1t3b8rlISLu76Ghr0VEW+UNPxXJTOLcpa6t9Pvv2GE=
 github.com/pbergman/provider v1.0.2/go.mod h1:g1TbkwPsOBLcdsVRBNrm+nUq5LsA9rn77rjUAVEMXw0=
