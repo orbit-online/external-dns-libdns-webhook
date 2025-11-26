@@ -1,15 +1,14 @@
-package provider
+package externaldns
 
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/libdns/libdns"
-	"github.com/project0/external-dns-libdns-webhook/internal/externaldns"
 	"github.com/rs/zerolog/log"
+	"sigs.k8s.io/external-dns/endpoint"
 )
 
 const (
@@ -53,24 +52,21 @@ func splitDNSName(dnsName string, zones []string) (string, string) {
 	return resourceRecord, domain
 }
 
-func toExternalDNSEndpoint(record libdns.Record, zone string) *externaldns.Endpoint {
+func toExternalDNSEndpoint(record libdns.Record, zone string) *endpoint.Endpoint {
 	rr := record.RR()
-	endpoint := externaldns.NewEndpointWithTTL(absoluteName(rr.Name, zone), rr.Type, int64(rr.TTL.Seconds()), rr.Data)
 
-	switch rec := record.(type) {
-	case libdns.MX:
-		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Preference), 10))
-	case libdns.SRV:
-		endpoint.WithProviderSpecific(identifierLabelWeight, strconv.FormatUint(uint64(rec.Weight), 10))
-		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Priority), 10))
-	case libdns.ServiceBinding:
-		endpoint.WithProviderSpecific(identifierLabelPriority, strconv.FormatUint(uint64(rec.Priority), 10))
+	endpoint := &endpoint.Endpoint{
+		DNSName:    strings.TrimSuffix(absoluteName(rr.Name, zone), "."),
+		Targets:    []string{rr.Data},
+		RecordType: rr.Type,
+		Labels:     map[string]string{},
+		RecordTTL:  endpoint.TTL(rr.TTL.Seconds()),
 	}
 
 	return endpoint
 }
 
-func toLibdnsRecord(endpoint *externaldns.Endpoint, zone string) libdns.Record {
+func toLibdnsRecord(endpoint *endpoint.Endpoint, zone string) libdns.Record {
 	record, err := libdns.RR{
 		Type: endpoint.RecordType,
 		Name: relativeName(endpoint.DNSName, zone),
@@ -82,43 +78,11 @@ func toLibdnsRecord(endpoint *externaldns.Endpoint, zone string) libdns.Record {
 
 		return record
 	}
-	var weight uint16
-	if prop, ok := endpoint.GetProviderSpecificProperty(identifierLabelWeight); ok {
-		w, err := strconv.ParseUint(prop, 10, 16)
-		if err != nil {
-			log.Err(err).Str("weigth", prop).Msg("Failed to parse weight")
-		} else {
-			weight = uint16(w)
-		}
-	}
-
-	var prio uint16
-	if prop, ok := endpoint.GetProviderSpecificProperty(identifierLabelPriority); ok {
-		p, err := strconv.ParseUint(prop, 10, 16)
-		if err != nil {
-			log.Err(err).Str("priority", prop).Msg("Failed to parse priority")
-		} else {
-			prio = uint16(p)
-		}
-	}
-
-	switch rec := record.(type) {
-	case libdns.MX:
-		rec.Preference = uint16(prio)
-		return rec
-	case libdns.SRV:
-		rec.Priority = uint16(prio)
-		rec.Weight = uint16(weight)
-		return rec
-	case libdns.ServiceBinding:
-		rec.Priority = uint16(prio)
-		return rec
-	}
 
 	return record
 }
 
-func endpointsToLibdnsZoneRecords(endpoints []*externaldns.Endpoint, zones []string) (map[string][]libdns.Record, error) {
+func endpointsToLibdnsZoneRecords(endpoints []*endpoint.Endpoint, zones []string) (map[string][]libdns.Record, error) {
 	zoneRecords := map[string][]libdns.Record{}
 
 	for _, endpoint := range endpoints {
