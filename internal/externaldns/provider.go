@@ -37,7 +37,7 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 
 	// return all records for configured zones
 	for _, zone := range p.zones {
-		logger := log.Ctx(ctx).With().Str("zone", zone).Logger()
+		logger := log.With().Str("zone", zone).Logger()
 		logger.Debug().Msg("Retrieving records for zone")
 
 		records, err := p.libdnsProvider.GetRecords(ctx, zone)
@@ -72,7 +72,7 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 }
 
 func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes) error {
-	log.Ctx(ctx).Debug().
+	log.Debug().
 		Any("changes_create", changes.Create).
 		Msg("Convert creation change endpoints to records")
 
@@ -81,7 +81,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 		return err
 	}
 
-	log.Ctx(ctx).Debug().
+	log.Debug().
 		Any("changes_delete", changes.Delete).
 		Msg("Convert deletion change endpoints to records")
 
@@ -90,7 +90,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 		return err
 	}
 
-	log.Ctx(ctx).Debug().
+	log.Debug().
 		Any("changes_update_new", changes.UpdateNew).
 		Any("changes_update_old", changes.UpdateOld).
 		Msg("Convert updates change endpoints to records")
@@ -102,7 +102,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 
 	if len(creates) > 0 {
 		for zone, records := range creates {
-			log.Ctx(ctx).Info().
+			log.Info().
 				Any("records", records).
 				Any("zone", zone).
 				Msg("Creating records")
@@ -116,7 +116,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 
 	if len(deletes) > 0 {
 		for zone, records := range deletes {
-			log.Ctx(ctx).Info().
+			log.Info().
 				Any("records", records).
 				Any("zone", zone).
 				Msg("Deleting records")
@@ -130,7 +130,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 
 	if len(updates) > 0 {
 		for zone, records := range updates {
-			log.Ctx(ctx).Info().
+			log.Info().
 				Any("records", records).
 				Any("zone", zone).
 				Msg("Updating records")
