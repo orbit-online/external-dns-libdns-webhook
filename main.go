@@ -10,12 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/project0/external-dns-libdns-webhook/internal/externaldns"
+	// "github.com/project0/external-dns-libdns-webhook/internal/externaldns"
 	"github.com/project0/external-dns-libdns-webhook/internal/libdnsregistry"
-	"github.com/project0/external-dns-libdns-webhook/internal/provider"
-	"github.com/project0/external-dns-libdns-webhook/internal/webhook"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
+	webhookApi "sigs.k8s.io/external-dns/provider/webhook/api"
 )
 
 var (
@@ -174,15 +176,18 @@ func main() {
 				return fmt.Errorf("failed to create provider %s: %w", providerName, err)
 			}
 
-			server := webhook.New(
-				provider.New(cmd.StringSlice(flagProviderZones), libdnsProvider),
-				cmd.String(flagWebhookListen),
+			//nolint:contextcheck
+			webhookApi.StartHTTPApi(
+				*externaldns.NewWebhookProvider(
+					cmd.StringSlice(flagProviderZones),
+					libdnsProvider,
+				),
+				nil, // startedChan
 				cmd.Duration(flagWebhookReadTimeout),
 				cmd.Duration(flagWebhookWriteTimeout),
+				cmd.String(flagWebhookListen),
 			)
-
-			//nolint:contextcheck
-			return server.Serve()
+			return nil
 		},
 	}
 
