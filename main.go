@@ -12,10 +12,7 @@ import (
 	"time"
 
 	"github.com/project0/external-dns-libdns-webhook/internal/externaldns"
-
-	// "github.com/project0/external-dns-libdns-webhook/internal/externaldns"
 	"github.com/project0/external-dns-libdns-webhook/internal/libdnsregistry"
-
 	"github.com/urfave/cli/v3"
 	webhookApi "sigs.k8s.io/external-dns/provider/webhook/api"
 )
