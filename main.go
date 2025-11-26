@@ -5,17 +5,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/project0/external-dns-libdns-webhook/internal/externaldns"
+
 	// "github.com/project0/external-dns-libdns-webhook/internal/externaldns"
 	"github.com/project0/external-dns-libdns-webhook/internal/libdnsregistry"
 
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 	webhookApi "sigs.k8s.io/external-dns/provider/webhook/api"
 )
@@ -65,6 +65,7 @@ Build: version=%s,commit=%s,date=%s
 `
 
 func main() {
+	startedChan := make(chan struct{}, 1)
 	cmd := &cli.Command{
 		Name:        "external-dns-webhook-libdns",
 		Version:     version,
@@ -73,14 +74,13 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    flagLogLevel,
-				Usage:   "The log level (trace, debug, info, warn, error, fatal, panic)",
+				Usage:   "The log level (debug, info, warn, error)",
 				Value:   "info",
 				Sources: flagAlternatives(flagLogLevel),
 				Validator: func(s string) error {
-					if _, err := zerolog.ParseLevel(s); err != nil {
+					if _, err := parseLogLevel(s); err != nil {
 						return fmt.Errorf("cannot set log level: %w", err)
 					}
-
 					return nil
 				},
 			},
@@ -144,17 +144,17 @@ func main() {
 
 		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
 			// setup logging
-			if cmd.String(flagLogFormat) == "text" {
-				log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
+			if cmd.String(flagLogFormat) == "json" {
+				slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 			}
 
-			level, err := zerolog.ParseLevel(cmd.String(flagLogLevel))
+			level, err := parseLogLevel(cmd.String(flagLogLevel))
 			if err != nil {
 				return ctx, fmt.Errorf("failed to parse log level: %w", err)
 			}
 
-			log.Info().Msgf("Setting log level to %s", level.String())
-			zerolog.SetGlobalLevel(level)
+			slog.Info("Setting log level", "level", level.String())
+			slog.SetLogLoggerLevel(level)
 
 			return ctx, nil
 		},
@@ -182,16 +182,24 @@ func main() {
 					cmd.StringSlice(flagProviderZones),
 					libdnsProvider,
 				),
-				nil, // startedChan
+				startedChan,
 				cmd.Duration(flagWebhookReadTimeout),
 				cmd.Duration(flagWebhookWriteTimeout),
 				cmd.String(flagWebhookListen),
 			)
+			<-startedChan
+			slog.Info("Startup completed")
 			return nil
 		},
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		log.Fatal().Err(err).Msg("Failed to run")
+		slog.Error("Failed to run", "err", err)
 	}
+}
+
+func parseLogLevel(s string) (slog.Level, error) {
+	var level slog.Level
+	var err = level.UnmarshalText([]byte(s))
+	return level, err
 }
