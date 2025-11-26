@@ -4,7 +4,6 @@ go 1.25.4
 
 require (
 	github.com/libdns/libdns v1.1.1
-	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v3 v3.6.1
 	sigs.k8s.io/external-dns v0.20.0
 )
@@ -101,8 +100,6 @@ require (
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/luadns/luadns-go v0.3.0 // indirect
 	github.com/luv2code/gomiabdns v1.1.0 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/miekg/dns v1.1.68 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
