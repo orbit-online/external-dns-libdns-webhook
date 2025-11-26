@@ -173,7 +173,6 @@ func main() {
 				return fmt.Errorf("failed to create provider %s: %w", providerName, err)
 			}
 
-			//nolint:contextcheck
 			webhookApi.StartHTTPApi(
 				*externaldns.NewWebhookProvider(
 					cmd.StringSlice(flagProviderZones),
