@@ -23,11 +23,9 @@ jobs:
         - os: linux
           arch: amd64
           runner: ubuntu-24.04
-          gorelease_v: v1
         - os: linux
           arch: arm64
           runner: ubuntu-24.04-arm
-          gorelease_v: v8.0
     runs-on: ${{ matrix.runner }}
     outputs:
       linux-amd64: ${{ steps.digest.outputs.linux-amd64 }}
@@ -35,6 +33,16 @@ jobs:
     steps:
     - name: Checkout the repo
       uses: actions/checkout@v6
+    - name: Setup go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+    - name: Build
+      run: go build
+      env:
+        GOOS: ${{ matrix.os }}
+        GOARCH: ${{ matrix.arch }}
+        CGO_ENABLED: "0"
     - name: Set up buildx
       uses: docker/setup-buildx-action@v3
     - name: Login to ghcr
@@ -43,19 +51,11 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v6
-      with:
-        distribution: goreleaser
-        args: build --single-target ${{ github.ref == 'refs/heads/main' && '--snapshot' || '' }}
-      env:
-        GOOS: ${{ matrix.os }}
-        GOARCH: ${{ matrix.arch }}
     - name: Build and push Docker image
       id: build
       uses: docker/build-push-action@v5
       with:
-        context: dist/external-dns-libdns-webhook_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.gorelease_v }}
+        context: .
         file: Dockerfile
         platforms: ${{ matrix.os }}/${{ matrix.arch }}
         tags: ${{ env.REGISTRY_IMAGE }}
