@@ -3,6 +3,9 @@ package externaldns
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/libdns/libdns"
 	"github.com/project0/external-dns-libdns-webhook/internal/libdnsregistry"
@@ -48,7 +51,14 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 		p.cachedZonesRecords[zone] = records
 
 		for _, record := range records {
-			endpoint := toExternalDNSEndpoint(record, zone)
+			rr := record.RR()
+			endpoint := &endpoint.Endpoint{
+				DNSName:    strings.TrimSuffix(libdns.AbsoluteName(rr.Name, zone), "."),
+				Targets:    []string{rr.Data},
+				RecordType: rr.Type,
+				Labels:     map[string]string{},
+				RecordTTL:  endpoint.TTL(rr.TTL.Seconds()),
+			}
 			logger.Trace().
 				Any("record", record).
 				Any("endpoint", endpoint).
@@ -133,4 +143,56 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 	}
 
 	return nil
+}
+
+func endpointsToLibdnsZoneRecords(endpoints []*endpoint.Endpoint, zones []string) (map[string][]libdns.Record, error) {
+	zoneRecords := map[string][]libdns.Record{}
+
+	for _, endpoint := range endpoints {
+		_, zone := splitDNSName(endpoint.DNSName, zones)
+		if zone == "" {
+			return nil, fmt.Errorf("no matching zone found for %s", endpoint.DNSName)
+		}
+
+		record := libdns.RR{
+			Type: endpoint.RecordType,
+			Name: libdns.RelativeName(endpoint.DNSName, zone),
+			Data: endpoint.Targets[0],
+			TTL:  time.Duration(endpoint.RecordTTL) * time.Second,
+		}
+
+		if _, ok := zoneRecords[zone]; !ok {
+			zoneRecords[zone] = []libdns.Record{}
+		}
+
+		zoneRecords[zone] = append(zoneRecords[zone], record)
+	}
+
+	return zoneRecords, nil
+}
+
+// splitDNSName splits a DNS name into a name and a zone.
+func splitDNSName(dnsName string, zones []string) (string, string) {
+	name := strings.TrimSuffix(dnsName, ".")
+
+	domain := ""
+	resourceRecord := ""
+	// sort zones by dot count; make sure subdomains sort earlier
+	sort.Slice(zones, func(i, j int) bool {
+		return strings.Count(zones[i], ".") > strings.Count(zones[j], ".")
+	})
+
+	for _, filter := range zones {
+		if strings.HasSuffix(name, "."+filter) {
+			domain = filter
+			resourceRecord = name[0 : len(name)-len(filter)-1]
+
+			break
+		} else if name == filter {
+			domain = filter
+			resourceRecord = ""
+		}
+	}
+
+	return resourceRecord, domain
 }
