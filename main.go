@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"runtime/debug"
 	"slices"
 	"strings"
 	"time"
@@ -15,13 +16,6 @@ import (
 	"github.com/project0/external-dns-libdns-webhook/internal/libdnsregistry"
 	"github.com/urfave/cli/v3"
 	webhookApi "sigs.k8s.io/external-dns/provider/webhook/api"
-)
-
-var (
-	// set by goreleaser.
-	version = "unknown"
-	commit  = "unknown"
-	date    = "unknown"
 )
 
 const (
@@ -57,17 +51,19 @@ const description = `A generic external-dns webhook provider supporting several 
 
 Supported Providers:
 %s
-
-Build: version=%s,commit=%s,date=%s
 `
 
 func main() {
+	var version string
+	if info, ok := debug.ReadBuildInfo(); ok {
+		version = info.Main.Version
+	}
 	startedChan := make(chan struct{}, 1)
 	cmd := &cli.Command{
 		Name:        "external-dns-webhook-libdns",
 		Version:     version,
 		Usage:       "Webhook for external-dns using libdns providers.",
-		Description: fmt.Sprintf(description, strings.Join(libdnsregistry.List(), ", "), version, commit, date),
+		Description: fmt.Sprintf(description, strings.Join(libdnsregistry.List(), ", ")),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    flagLogLevel,
