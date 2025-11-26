@@ -17,18 +17,16 @@ import (
 
 type WebhookProvider struct {
 	provider.BaseProvider
-	zones              []string
-	libdnsProvider     libdnsregistry.Provider
-	domainFilter       *endpoint.DomainFilter
-	cachedZonesRecords map[string][]libdns.Record
+	domainFilter   *endpoint.DomainFilter
+	libdnsProvider libdnsregistry.Provider
+	zones          []string
 }
 
 func NewWebhookProvider(zones []string, libdnsProvider libdnsregistry.Provider) *WebhookProvider {
 	return &WebhookProvider{
-		zones:              zones,
-		domainFilter:       endpoint.NewDomainFilter(zones),
-		libdnsProvider:     libdnsProvider,
-		cachedZonesRecords: map[string][]libdns.Record{},
+		domainFilter:   endpoint.NewDomainFilter(zones),
+		libdnsProvider: libdnsProvider,
+		zones:          zones,
 	}
 }
 
@@ -46,9 +44,6 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 			slog.Error("failed to retrieve records for zone", "zone", zone, "err", err)
 			continue
 		}
-
-		// as there is no real concurrent sync in progress we can cache between the calls to avoid calling api too many times
-		p.cachedZonesRecords[zone] = records
 
 		for _, record := range records {
 			rr := record.RR()
