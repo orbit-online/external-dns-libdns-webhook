@@ -19,14 +19,12 @@ type WebhookProvider struct {
 	provider.BaseProvider
 	domainFilter   *endpoint.DomainFilter
 	libdnsProvider libdnsregistry.Provider
-	zones          []string
 }
 
 func NewWebhookProvider(zones []string, libdnsProvider libdnsregistry.Provider) *WebhookProvider {
 	return &WebhookProvider{
 		domainFilter:   endpoint.NewDomainFilter(zones),
 		libdnsProvider: libdnsProvider,
-		zones:          zones,
 	}
 }
 
@@ -35,7 +33,7 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 	endpoints := []*endpoint.Endpoint{}
 
 	// return all records for configured zones
-	for _, zone := range p.zones {
+	for _, zone := range p.domainFilter.Filters {
 		slog.Debug("Retrieving records for zone")
 
 		records, err := p.libdnsProvider.GetRecords(ctx, zone)
@@ -74,7 +72,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 		zoneRecords := map[string][]libdns.Record{}
 
 		for _, endpoint := range endpoints {
-			_, zone := splitDNSName(endpoint.DNSName, p.zones)
+			_, zone := splitDNSName(endpoint.DNSName, p.domainFilter.Filters)
 			if zone == "" {
 				errs++
 				slog.Error("no matching zone found for endpoint", "endpoint", endpoint)
