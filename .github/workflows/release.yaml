@@ -55,7 +55,7 @@ jobs:
       id: build
       uses: docker/build-push-action@v5
       with:
-        context: dist/builds_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.gorelease_v }}
+        context: dist/external-dns-libdns-webhook_${{ matrix.os }}_${{ matrix.arch }}_${{ matrix.gorelease_v }}
         file: Dockerfile
         platforms: ${{ matrix.os }}/${{ matrix.arch }}
         tags: ${{ env.REGISTRY_IMAGE }}
