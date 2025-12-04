@@ -45,16 +45,16 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 
 		for _, record := range records {
 			rr := record.RR()
-			endpoint := &endpoint.Endpoint{
+			ep := &endpoint.Endpoint{
 				DNSName:    strings.TrimSuffix(libdns.AbsoluteName(rr.Name, zone), "."),
 				Targets:    []string{rr.Data},
 				RecordType: rr.Type,
 				Labels:     map[string]string{},
 				RecordTTL:  endpoint.TTL(rr.TTL.Seconds()),
 			}
-			slog.Debug("Converted record to endpoint", "record", record, "endpoint", endpoint)
+			slog.Debug("Converted record to endpoint", "record", record, "endpoint", ep)
 
-			endpoints = append(endpoints, endpoint)
+			endpoints = append(endpoints, ep)
 		}
 	}
 
@@ -71,24 +71,31 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 	endpointsToLibdnsZoneRecords := func(endpoints []*endpoint.Endpoint) map[string][]libdns.Record {
 		zoneRecords := map[string][]libdns.Record{}
 
-		for _, endpoint := range endpoints {
-			_, zone := splitDNSName(endpoint.DNSName, p.domainFilter.Filters)
+		for _, ep := range endpoints {
+			_, zone := splitDNSName(ep.DNSName, p.domainFilter.Filters)
 			if zone == "" {
 				errs++
-				slog.Error("no matching zone found for endpoint", "endpoint", endpoint)
+				slog.Error("no matching zone found for endpoint", "endpoint", ep)
 			} else {
-				record := libdns.RR{
-					Type: endpoint.RecordType,
-					Name: libdns.RelativeName(endpoint.DNSName, zone),
-					Data: endpoint.Targets[0],
-					TTL:  time.Duration(endpoint.RecordTTL) * time.Second,
-				}
-				slog.Debug("Converted endpoint to record", "endpoint", endpoint, "record", record)
+				for _, target := range ep.Targets {
+					record, err := libdns.RR{
+						Type: ep.RecordType,
+						Name: libdns.RelativeName(ep.DNSName, zone),
+						Data: target,
+						TTL:  time.Duration(ep.RecordTTL) * time.Second,
+					}.RR().Parse()
+					if err != nil {
+						errs++
+						slog.Error("failed to parse endpoint target", "target", target, "endpoint", ep)
+						continue
+					}
+					slog.Debug("Converted endpoint to record", "endpoint", ep, "record", record)
 
-				if _, ok := zoneRecords[zone]; !ok {
-					zoneRecords[zone] = []libdns.Record{}
+					if _, ok := zoneRecords[zone]; !ok {
+						zoneRecords[zone] = []libdns.Record{}
+					}
+					zoneRecords[zone] = append(zoneRecords[zone], record)
 				}
-				zoneRecords[zone] = append(zoneRecords[zone], record)
 			}
 		}
 
