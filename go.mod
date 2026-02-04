@@ -151,3 +151,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
+
+replace github.com/libdns/inwx v0.3.1 => github.com/orbit-online/libdns-inwx v0.0.0-20260204154723-b5e0114cadd0

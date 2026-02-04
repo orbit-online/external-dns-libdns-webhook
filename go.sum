@@ -392,8 +392,6 @@ github.com/libdns/he v1.2.1 h1:cjTZlxM5wv2lBPmtxsQCqMgmXMqTnmR4eLqUVwEkqis=
 github.com/libdns/he v1.2.1/go.mod h1:SWTm80gn+7sUASGsQbRHayenoW4QIw/iGmsrkDzFghM=
 github.com/libdns/infomaniak v0.2.0 h1:TC3jP68Tnw4sAi87r1xNY4fPF5Cs5SPGbEkTWvXCmnc=
 github.com/libdns/infomaniak v0.2.0/go.mod h1:2RTkgFMLv45OPE8dwgFZKn4PKzECdVADdHdkIcbUZWE=
-github.com/libdns/inwx v0.3.1 h1:AZXlqU36Hl7RTRZf2xawxfwZ9Y120Xl0ZIozs7gsccU=
-github.com/libdns/inwx v0.3.1/go.mod h1:kUBDmTXFGY8BqpHRJOWQ+GYfFnJOeejKeJHhnVliUb8=
 github.com/libdns/libdns v1.0.0-beta.1/go.mod h1:4Bj9+5CQiNMVGf87wjX4CY3HQJypUHRuLvlsfsZqLWQ=
 github.com/libdns/libdns v1.1.0/go.mod h1:4Bj9+5CQiNMVGf87wjX4CY3HQJypUHRuLvlsfsZqLWQ=
 github.com/libdns/libdns v1.1.1 h1:wPrHrXILoSHKWJKGd0EiAVmiJbFShguILTg9leS/P/U=
@@ -472,6 +470,8 @@ github.com/onsi/ginkgo/v2 v2.22.0 h1:Yed107/8DjTr0lKCNt7Dn8yQ6ybuDRQoMGrNFKzMfHg
 github.com/onsi/ginkgo/v2 v2.22.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.36.1 h1:bJDPBO7ibjxcbHMgSCoo4Yj18UWbKDlLwX1x9sybDcw=
 github.com/onsi/gomega v1.36.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
+github.com/orbit-online/libdns-inwx v0.0.0-20260204154723-b5e0114cadd0 h1:oh1oUIrXraqtzUCtyrgbGs4SkX1W3SjObDao+cZX/is=
+github.com/orbit-online/libdns-inwx v0.0.0-20260204154723-b5e0114cadd0/go.mod h1:kUBDmTXFGY8BqpHRJOWQ+GYfFnJOeejKeJHhnVliUb8=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pbergman/provider v1.0.2 h1:O1t3b8rlISLu76Ghr0VEW+UNPxXJTOLcpa6t9Pvv2GE=
 github.com/pbergman/provider v1.0.2/go.mod h1:g1TbkwPsOBLcdsVRBNrm+nUq5LsA9rn77rjUAVEMXw0=
