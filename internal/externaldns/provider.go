@@ -77,12 +77,13 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 				slog.Error("no matching zone found for endpoint", "endpoint", ep)
 			} else {
 				for _, target := range ep.Targets {
-					record, err := libdns.RR{
+					record := libdns.RR{
 						Type: ep.RecordType,
 						Name: libdns.RelativeName(ep.DNSName, zone),
 						Data: target,
 						TTL:  time.Duration(ep.RecordTTL) * time.Second,
-					}.RR().Parse()
+					}
+					_, err := record.RR().Parse()
 					if err != nil {
 						errs++
 						slog.Error("failed to parse endpoint target", "target", target, "endpoint", ep)
