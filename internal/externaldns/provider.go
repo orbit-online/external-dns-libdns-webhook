@@ -70,7 +70,6 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 
 	endpointsToLibdnsZoneRecords := func(endpoints []*endpoint.Endpoint) map[string][]libdns.Record {
 		zoneRecords := map[string][]libdns.Record{}
-
 		for _, ep := range endpoints {
 			_, zone := splitDNSName(ep.DNSName, p.domainFilter.Filters)
 			if zone == "" {
@@ -112,10 +111,16 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 	if len(creates) > 0 {
 		for zone, records := range creates {
 			slog.Info("Creating records", "zone", zone, "records", records)
-			_, err := p.libdnsProvider.AppendRecords(ctx, zone, records)
+			created, err := p.libdnsProvider.AppendRecords(ctx, zone, records)
 			if err != nil {
 				errs++
 				slog.Error("failed to create records", "err", err)
+			}
+			if len(created) != len(records) {
+				errs++
+				slog.Error("number of creates did not match number of records to create", "actual", len(created), "wanted", len(records))
+			} else {
+				slog.Debug("records created", "actual", len(created), "wanted", len(records))
 			}
 		}
 	}
@@ -123,10 +128,16 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 	if len(deletes) > 0 {
 		for zone, records := range deletes {
 			slog.Info("Deleting records", "zone", zone, "records", records)
-			_, err := p.libdnsProvider.DeleteRecords(ctx, zone, records)
+			deleted, err := p.libdnsProvider.DeleteRecords(ctx, zone, records)
 			if err != nil {
 				errs++
 				slog.Error("failed to delete records", "err", err)
+			}
+			if len(deleted) != len(records) {
+				errs++
+				slog.Error("number of deletes did not match number of records to delete", "actual", len(deleted), "wanted", len(records))
+			} else {
+				slog.Debug("records deleted", "actual", len(deleted), "wanted", len(records))
 			}
 		}
 	}
@@ -134,10 +145,16 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 	if len(updates) > 0 {
 		for zone, records := range updates {
 			slog.Info("Updating records", "zone", zone, "records", records)
-			_, err := p.libdnsProvider.SetRecords(ctx, zone, records)
+			updated, err := p.libdnsProvider.SetRecords(ctx, zone, records)
 			if err != nil {
 				errs++
 				slog.Error("failed to update records", "err", err)
+			}
+			if len(updated) != len(records) {
+				errs++
+				slog.Error("number of updates did not match number of records to update", "actual", len(updated), "wanted", len(records))
+			} else {
+				slog.Debug("records updated", "actual", len(updated), "wanted", len(records))
 			}
 		}
 	}
