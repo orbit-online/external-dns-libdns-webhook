@@ -43,18 +43,31 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 			continue
 		}
 
+		groupedRecords := map[string](map[string][]libdns.Record){}
 		for _, record := range records {
 			rr := record.RR()
-			ep := &endpoint.Endpoint{
-				DNSName:    strings.TrimSuffix(libdns.AbsoluteName(rr.Name, zone), "."),
-				Targets:    []string{rr.Data},
-				RecordType: rr.Type,
-				Labels:     map[string]string{},
-				RecordTTL:  endpoint.TTL(rr.TTL.Seconds()),
+			if _, ok := groupedRecords[rr.Type]; !ok {
+				groupedRecords[rr.Type] = map[string][]libdns.Record{}
 			}
-			slog.Debug("Converted record to endpoint", "record", record, "endpoint", ep)
+			groupedRecords[rr.Type][rr.Name] = append(groupedRecords[rr.Type][rr.Name], record)
+		}
+		for recordType, typeGroup := range groupedRecords {
+			for recordName, nameGroup := range typeGroup {
+				var data []string
+				for _, record := range nameGroup {
+					data = append(data, record.RR().Data)
+				}
+				ep := &endpoint.Endpoint{
+					DNSName:    strings.TrimSuffix(libdns.AbsoluteName(recordName, zone), "."),
+					Targets:    data,
+					RecordType: recordType,
+					Labels:     map[string]string{},
+					RecordTTL:  endpoint.TTL(nameGroup[0].RR().TTL.Seconds()),
+				}
+				slog.Debug("Converted records to endpoint", "records", nameGroup, "endpoint", ep)
 
-			endpoints = append(endpoints, ep)
+				endpoints = append(endpoints, ep)
+			}
 		}
 	}
 
