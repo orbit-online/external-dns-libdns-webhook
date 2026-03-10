@@ -2,6 +2,7 @@ package externaldns
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sort"
@@ -29,7 +30,7 @@ func NewWebhookProvider(zones []string, libdnsProvider libdnsregistry.Provider) 
 }
 
 func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, error) {
-	errs := 0
+	var errs []error
 	endpoints := []*endpoint.Endpoint{}
 
 	// return all records for configured zones
@@ -38,8 +39,7 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 
 		records, err := p.libdnsProvider.GetRecords(ctx, zone)
 		if err != nil {
-			errs++
-			slog.Error("failed to retrieve records for zone", "zone", zone, "err", err)
+			errs = append(errs, fmt.Errorf("failed to retrieve records for zone %s: %w", zone, err))
 			continue
 		}
 
@@ -71,44 +71,38 @@ func (p WebhookProvider) Records(ctx context.Context) ([]*endpoint.Endpoint, err
 		}
 	}
 
-	if errs > 0 {
-		return endpoints, fmt.Errorf("encountered %d errors while retrieving records", errs)
-	} else {
-		return endpoints, nil
-	}
+	return endpoints, errors.Join(errs...)
 }
 
 func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes) error {
-	errs := 0
+	var errs []error
 
 	endpointsToLibdnsZoneRecords := func(endpoints []*endpoint.Endpoint) map[string][]libdns.Record {
 		zoneRecords := map[string][]libdns.Record{}
 		for _, ep := range endpoints {
 			_, zone := splitDNSName(ep.DNSName, p.domainFilter.Filters)
 			if zone == "" {
-				errs++
-				slog.Error("no matching zone found for endpoint", "endpoint", ep)
-			} else {
-				for _, target := range ep.Targets {
-					record := libdns.RR{
-						Type: ep.RecordType,
-						Name: libdns.RelativeName(ep.DNSName, zone),
-						Data: target,
-						TTL:  time.Duration(ep.RecordTTL) * time.Second,
-					}
-					_, err := record.RR().Parse()
-					if err != nil {
-						errs++
-						slog.Error("failed to parse endpoint target", "target", target, "endpoint", ep)
-						continue
-					}
-					slog.Debug("Converted endpoint to record", "endpoint", ep, "record", record)
-
-					if _, ok := zoneRecords[zone]; !ok {
-						zoneRecords[zone] = []libdns.Record{}
-					}
-					zoneRecords[zone] = append(zoneRecords[zone], record)
+				slog.Debug("no matching zone found for endpoint", "ep", ep)
+				continue
+			}
+			for _, target := range ep.Targets {
+				record := libdns.RR{
+					Type: ep.RecordType,
+					Name: libdns.RelativeName(ep.DNSName, zone),
+					Data: target,
+					TTL:  time.Duration(ep.RecordTTL) * time.Second,
 				}
+				_, err := record.RR().Parse()
+				if err != nil {
+					errs = append(errs, fmt.Errorf("failed to parse endpoint target %s, endpoint: %+v", target, ep))
+					continue
+				}
+				slog.Debug("Converted endpoint to record", "endpoint", ep, "record", record)
+
+				if _, ok := zoneRecords[zone]; !ok {
+					zoneRecords[zone] = []libdns.Record{}
+				}
+				zoneRecords[zone] = append(zoneRecords[zone], record)
 			}
 		}
 
@@ -127,14 +121,13 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Creating records", "zone", zone, "records", records)
 			created, err := p.libdnsProvider.AppendRecords(ctx, zone, records)
 			if err != nil {
-				errs++
-				slog.Error("failed to create records", "err", err)
-			}
-			if len(created) != len(records) {
-				errs++
-				slog.Error("number of creates did not match number of records to create", "actual", len(created), "wanted", len(records))
+				errs = append(errs, fmt.Errorf("failed to create records: %w", err))
 			} else {
-				slog.Debug("records created", "actual", len(created), "wanted", len(records))
+				if len(created) != len(records) {
+					errs = append(errs, fmt.Errorf("number of created records (%d) did not match number of records to create (%d)", len(created), len(records)))
+				} else {
+					slog.Debug("records created", "actual", len(created), "wanted", len(records))
+				}
 			}
 		}
 	}
@@ -144,14 +137,13 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Deleting records", "zone", zone, "records", records)
 			deleted, err := p.libdnsProvider.DeleteRecords(ctx, zone, records)
 			if err != nil {
-				errs++
-				slog.Error("failed to delete records", "err", err)
-			}
-			if len(deleted) != len(records) {
-				errs++
-				slog.Error("number of deletes did not match number of records to delete", "actual", len(deleted), "wanted", len(records))
+				errs = append(errs, fmt.Errorf("failed to delete records: %w", err))
 			} else {
-				slog.Debug("records deleted", "actual", len(deleted), "wanted", len(records))
+				if len(deleted) != len(records) {
+					errs = append(errs, fmt.Errorf("number of deleted records (%d) did not match number of records to delete (%d)", len(deleted), len(records)))
+				} else {
+					slog.Debug("records deleted", "actual", len(deleted), "wanted", len(records))
+				}
 			}
 		}
 	}
@@ -161,23 +153,18 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Updating records", "zone", zone, "records", records)
 			updated, err := p.libdnsProvider.SetRecords(ctx, zone, records)
 			if err != nil {
-				errs++
-				slog.Error("failed to update records", "err", err)
-			}
-			if len(updated) != len(records) {
-				errs++
-				slog.Error("number of updates did not match number of records to update", "actual", len(updated), "wanted", len(records))
+				errs = append(errs, fmt.Errorf("failed to update records: %w", err))
 			} else {
-				slog.Debug("records updated", "actual", len(updated), "wanted", len(records))
+				if len(updated) != len(records) {
+					errs = append(errs, fmt.Errorf("number of updated records (%d) did not match number of records to update (%d)", len(updated), len(records)))
+				} else {
+					slog.Debug("records updated", "actual", len(updated), "wanted", len(records))
+				}
 			}
 		}
 	}
 
-	if errs > 0 {
-		return fmt.Errorf("encountered %d errors while applying changes", errs)
-	} else {
-		return nil
-	}
+	return errors.Join(errs...)
 }
 
 // splitDNSName splits a DNS name into a name and a zone.
