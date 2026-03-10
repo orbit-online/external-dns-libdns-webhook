@@ -121,7 +121,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Creating records", "zone", zone, "records", records)
 			created, err := p.libdnsProvider.AppendRecords(ctx, zone, records)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to create records: %w", err))
+				errs = append(errs, fmt.Errorf("failed to create records in zone %s: %w", zone, err))
 			} else {
 				if len(created) != len(records) {
 					errs = append(errs, fmt.Errorf("number of created records (%d) did not match number of records to create (%d)", len(created), len(records)))
@@ -137,7 +137,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Deleting records", "zone", zone, "records", records)
 			deleted, err := p.libdnsProvider.DeleteRecords(ctx, zone, records)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to delete records: %w", err))
+				errs = append(errs, fmt.Errorf("failed to delete records in zone %s: %w", zone, err))
 			} else {
 				if len(deleted) != len(records) {
 					errs = append(errs, fmt.Errorf("number of deleted records (%d) did not match number of records to delete (%d)", len(deleted), len(records)))
@@ -153,7 +153,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 			slog.Info("Updating records", "zone", zone, "records", records)
 			updated, err := p.libdnsProvider.SetRecords(ctx, zone, records)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to update records: %w", err))
+				errs = append(errs, fmt.Errorf("failed to update records in zone %s: %w", zone, err))
 			} else {
 				if len(updated) != len(records) {
 					errs = append(errs, fmt.Errorf("number of updated records (%d) did not match number of records to update (%d)", len(updated), len(records)))
