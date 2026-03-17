@@ -94,7 +94,7 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 				}
 				_, err := record.RR().Parse()
 				if err != nil {
-					errs = append(errs, fmt.Errorf("failed to parse endpoint target %s, endpoint: %+v", target, ep))
+					errs = append(errs, fmt.Errorf("failed to parse endpoint target %s, endpoint: %+v, err: %w", target, ep, err))
 					continue
 				}
 				slog.Debug("Converted endpoint to record", "endpoint", ep, "record", record)
