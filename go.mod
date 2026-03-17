@@ -152,4 +152,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/libdns/inwx v0.3.1 => github.com/orbit-online/libdns-inwx v0.0.0-20260310132345-65d0ee5cbad3
+replace github.com/libdns/inwx v0.3.1 => github.com/orbit-online/libdns-inwx v0.0.0-20260317114442-e98697a260b8

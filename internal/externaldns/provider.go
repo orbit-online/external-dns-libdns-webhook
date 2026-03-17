@@ -86,13 +86,12 @@ func (p WebhookProvider) ApplyChanges(ctx context.Context, changes *plan.Changes
 				continue
 			}
 			for _, target := range ep.Targets {
-				record := libdns.RR{
+				record, err := libdns.RR{
 					Type: ep.RecordType,
 					Name: libdns.RelativeName(ep.DNSName, zone),
 					Data: strings.Trim(target, "\""),
 					TTL:  time.Duration(ep.RecordTTL) * time.Second,
-				}
-				_, err := record.RR().Parse()
+				}.RR().Parse()
 				if err != nil {
 					errs = append(errs, fmt.Errorf("failed to parse endpoint target %s, endpoint: %+v, err: %w", target, ep, err))
 					continue

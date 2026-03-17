@@ -470,8 +470,8 @@ github.com/onsi/ginkgo/v2 v2.22.0 h1:Yed107/8DjTr0lKCNt7Dn8yQ6ybuDRQoMGrNFKzMfHg
 github.com/onsi/ginkgo/v2 v2.22.0/go.mod h1:7Du3c42kxCUegi0IImZ1wUQzMBVecgIHjR1C+NkhLQo=
 github.com/onsi/gomega v1.36.1 h1:bJDPBO7ibjxcbHMgSCoo4Yj18UWbKDlLwX1x9sybDcw=
 github.com/onsi/gomega v1.36.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
-github.com/orbit-online/libdns-inwx v0.0.0-20260310132345-65d0ee5cbad3 h1:xhkdm3E5xk7PAwtBZ0gPDBWW+zkaqV1bIm+CaKjdCp4=
-github.com/orbit-online/libdns-inwx v0.0.0-20260310132345-65d0ee5cbad3/go.mod h1:kUBDmTXFGY8BqpHRJOWQ+GYfFnJOeejKeJHhnVliUb8=
+github.com/orbit-online/libdns-inwx v0.0.0-20260317114442-e98697a260b8 h1:MBcc2dC7KqmBSxs2Nvra9XoNBixiXNlIamevSaZX8UA=
+github.com/orbit-online/libdns-inwx v0.0.0-20260317114442-e98697a260b8/go.mod h1:kUBDmTXFGY8BqpHRJOWQ+GYfFnJOeejKeJHhnVliUb8=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pbergman/provider v1.0.2 h1:O1t3b8rlISLu76Ghr0VEW+UNPxXJTOLcpa6t9Pvv2GE=
 github.com/pbergman/provider v1.0.2/go.mod h1:g1TbkwPsOBLcdsVRBNrm+nUq5LsA9rn77rjUAVEMXw0=
